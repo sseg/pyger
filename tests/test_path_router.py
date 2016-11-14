@@ -172,3 +172,25 @@ def test_make_regex_tuple_no_regex_provided():
     name, compiled = make_regex_tuple(name_pattern)
     assert name == 'name'
     assert compiled == re.compile(default_pattern)
+
+
+def test_path_router_glob_remainder():
+    router = PathRouter()
+    sentinel = object()
+    router.connect(sentinel, path='/foo/{*fizz}')
+    match = router.match(path='/foo/bar/baz.txt')
+    assert match.target is sentinel
+    assert match.match_info['*fizz'] == ('bar', 'baz.txt')
+
+
+def test_path_router_glob_remainder_in_middle():
+    router = PathRouter()
+    sentinel = object()
+    try:
+        router.connect(sentinel, path='/foo/{*bar}/baz/{*fizz}')
+    except ValueError:
+        pass
+    except Exception as err:
+        assert False, 'Expected ValueError; %s raised.' % err.__class__.__name__
+    else:
+        assert False, 'Expected ValueError; no error raised.'

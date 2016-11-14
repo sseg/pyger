@@ -8,7 +8,7 @@ setup(
     name="pyger",
     description="PyGER - Python Generic Extensible Router",
     long_description="""
-        PyGER is a library for for building arbitrary routing trees.
+        PyGER is a library for building arbitrary routing trees.
     """,
     license="""BSD""",
     version="0.1",

@@ -11,15 +11,16 @@ class PathRouter(AbstractRouter):
         path_key (str): the name of the keyword argument to be used when matching
         routes.
 
-    >>> router = PathRouter()
-    >>> router.connect(index_handler, path='/index')
-    >>> router.connect(article_handler, path='/articles/{category}/{id:[0-9]+}')
-    >>> router.match('/index')
-    RouteMatch(target=index_handler, match_info={})
-    >>> router.match('/articles/books/123')
-    RouteMatch(target=article_handler, match_info={'category': 'books', 'id': '123'})
-    >>> router.match('/not/valid')
-    MatchError
+    Usage:
+        >>> router = PathRouter()
+        >>> router.connect(index_handler, path='/index')
+        >>> router.connect(article_handler, path='/articles/{category}/{id:[0-9]+}')
+        >>> router.match('/index')
+        RouteMatch(target=index_handler, match_info={})
+        >>> router.match('/articles/books/123')
+        RouteMatch(target=article_handler, match_info={'category': 'books', 'id': '123'})
+        >>> router.match('/not/valid')
+        MatchError
     """
 
     def __init__(self, path_key='path', raises=MatchError):
@@ -31,10 +32,18 @@ class PathRouter(AbstractRouter):
         path = self._get_path_arg(kwargs)
         segments = path.strip('/').split('/')
         node = self.map
+
         for segment in segments[:-1]:
+            if segment.startswith('{*'):
+                raise ValueError(
+                    'Globbing path segments (`*foo`) can only be '
+                    'used as the last segment in a path'
+                )
             node.set(segment, PathMap())
             node = node.get(segment)[0]
-        node.set(segments[-1], handler)
+
+        last_segment = segments[-1]
+        node.set(last_segment, handler)
 
     def _resolve(self, match_info, **kwargs):
         path = self._get_path_arg(kwargs)
@@ -61,10 +70,16 @@ class PathRouter(AbstractRouter):
     def _traverse_map(self, path_segments):
         node = self.map
         dispatch_matches = {}
-        for segment in path_segments:
+        for i, segment in enumerate(path_segments):
             node, segment_name = node.get(segment)
             if segment_name is not None:
-                dispatch_matches[segment_name] = segment
+                if segment_name.startswith('*'):
+                    break
+                else:
+                    dispatch_matches[segment_name] = segment
+        if i + 1 != len(path_segments):
+            dispatch_matches.setdefault(segment_name, tuple())
+            dispatch_matches[segment_name] += tuple(segment for segment in path_segments[i:])
         return node, dispatch_matches
 
 
@@ -83,7 +98,7 @@ class PathMap:
             raise
 
     def set(self, name, value):
-        if name != '' and name[0] == '{':
+        if name.startswith('{'):
             regex_tuple = make_regex_tuple(name)
             self.regex_segments[regex_tuple] = value
         else:
