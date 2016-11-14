@@ -3,4 +3,6 @@ python:
     - "3.5"
     - "3.6-dev"
     - "pypy3"
+install:
+    - python setup.py test
 script: pytest
