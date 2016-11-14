@@ -10,22 +10,26 @@ class MatchError(LookupError):
 
 
 class AbstractRouter(metaclass=ABCMeta):
+    """
+    A router implementation exposes a public API consisting of at least the methods
+    `connect` and `match`.
+    """
+    def __init__(self, raises=MatchError):
+        self.exc_class = raises
+
     @abstractmethod
-    def resolve(self, match_info, **kwargs):
+    def connect(self, handler, **kwargs):
         """
-        A method that finds a registered route handler.
+        A method which registers new handlers to routes.
 
         Args:
-            match_info (Dict[str, Any]): Collected data from resvolvers in the
-            routing tree. Used to gather artifacts of routing.
+            handler (Any): The value resolved by a match.
 
-            **kwargs: Any arguments used to resolve a route.
+            **kwargs: All arguments necessary to update the router's state. These
+            are the same keyword arguments that will be used to later match a route.
 
         Returns:
-            A tuple of a matched handler and an updated match_info dict.
-
-        Raises:
-            Any exception type.
+            Anything.
         """
 
     def match(self, _match_info=None, **kwargs):
@@ -43,26 +47,38 @@ class AbstractRouter(metaclass=ABCMeta):
 
         Returns:
             RouteMatch
+
+        Raises:
+            yes
         """
         match_info = {} if _match_info is None else _match_info
-        try:
-            handler, updated_match_info = self.resolve(match_info, **kwargs)
-        except Exception as err:
-            raise MatchError from err
+        handler, updated_match_info = self._resolve(match_info, **kwargs)
         if isinstance(handler, AbstractRouter):
             return handler.match(_match_info=updated_match_info, **kwargs)
         return RouteMatch(target=handler, match_info=updated_match_info)
 
     @abstractmethod
-    def connect(self, handler, **kwargs):
+    def _resolve(self, match_info, **kwargs):
         """
-        A method which registers new handlers to routes.
+        A method that finds a registered route handler.
 
         Args:
-            handler (Any): The value resolved by a match.
+            match_info (Dict[str, Any]): Collected data from resvolvers in the
+            routing tree. Used to gather artifacts of routing.
 
-            **kwargs: All arguments necessary to update the router's state.
+            **kwargs: Any arguments used to resolve a route.
 
         Returns:
-            Anything.
+            A tuple of a matched handler and an updated match_info dict.
+
+        Raises:
+            Any exception type.
         """
+
+    def _build_exception(self, **extra):
+        exc = self.exc_class()
+        exc._pyger = {
+            'router': self,
+            **extra
+        }
+        return exc

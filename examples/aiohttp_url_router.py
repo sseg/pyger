@@ -3,10 +3,6 @@ from aiohttp.web_urldispatcher import MatchInfoError, UrlMappingMatchInfo, Resou
 from aiohttp.web_exceptions import HTTPMethodNotAllowed, HTTPNotFound
 from pyger.routers import PathRouter, HTTPMethodRouter
 from pyger.base import MatchError
-import logging
-
-
-log = logging.getLogger(__name__)
 
 
 async def hello_v1(request):
@@ -23,19 +19,23 @@ async def hello_v2(request):
 
 class PygerRouter(abc.AbstractRouter):
     def __init__(self):
-        self.routes = PathRouter()
+        self.routes = PathRouter(raises=HTTPNotFound)
 
     def add_route(self, method, path, handler):
-        method_router = HTTPMethodRouter()
+        method_router = HTTPMethodRouter()  # raises default MatchError
         method_router.connect(handler, method=method)
         self.routes.connect(method_router, path=path)
 
     async def resolve(self, request):
         try:
             match = self.routes.match(path=request.path, method=request.method)
-        except MatchError:
-            log.exception('Not able to resolve request')
-            return MatchInfoError(HTTPNotFound())
+        except Exception as err:
+            if isinstance(err, MatchError):  # the HTTPMethodRouter raised an error
+                method_key = err._pyger['router'].method_key
+                method = err._pyger['kwargs'][method_key]
+                allowed_methods = err._pyger['router'].keys()
+                err = HTTPMethodNotAllowed(method, allowed_methods)
+            return MatchInfoError(err)
         route = ResourceRoute(request.method, match.target, match)
         return UrlMappingMatchInfo(match.match_info, route)
 

@@ -22,9 +22,10 @@ class PathRouter(AbstractRouter):
     MatchError
     """
 
-    def __init__(self, path_key='path'):
+    def __init__(self, path_key='path', raises=MatchError):
         self.path_key = path_key
         self.map = PathMap()
+        self.exc_class = raises
 
     def connect(self, handler, **kwargs):
         path = self._get_path_arg(kwargs)
@@ -35,18 +36,17 @@ class PathRouter(AbstractRouter):
             node = node[segment][0]
         node[segments[-1]] = handler
 
-    def resolve(self, match_info, **kwargs):
+    def _resolve(self, match_info, **kwargs):
         path = self._get_path_arg(kwargs)
         segments = path.strip('/').split('/')
-        url_dispatch_matches = {}
-        node = self.map
-        for segment in segments:
-            node, segment_name = node[segment]
-            if segment_name is not None:
-                url_dispatch_matches[segment_name] = segment
-        if isinstance(node, PathMap):
-            raise LookupError('No leaf node found')
-        return node, {**match_info, **url_dispatch_matches}
+        try:
+            found, dispatch_matches = self._traverse_map(segments)
+        except LookupError as err:
+            raise self._build_exception(kwargs=kwargs)
+        if isinstance(found, PathMap):
+            # traversal did not lead to a leaf node
+            raise self._build_exception(kwargs=kwargs)
+        return found, {**match_info, **dispatch_matches}
 
     def _get_path_arg(self, kwarg_dict):
         path = kwarg_dict.get(self.path_key)
@@ -57,6 +57,15 @@ class PathRouter(AbstractRouter):
                 )
             )
         return path
+
+    def _traverse_map(self, path_segments):
+        node = self.map
+        dispatch_matches = {}
+        for segment in path_segments:
+            node, segment_name = node[segment]
+            if segment_name is not None:
+                dispatch_matches[segment_name] = segment
+        return node, dispatch_matches
 
 
 class PathMap:

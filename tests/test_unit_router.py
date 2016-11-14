@@ -5,7 +5,7 @@ def test_resolve():
     sentinel = object()
     router = UnitRouter(sentinel)
 
-    value, match_info = router.resolve({})
+    value, match_info = router._resolve({})
     assert value is sentinel
 
 
