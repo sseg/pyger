@@ -1,4 +1,10 @@
-from pyger.routers.simple import SimpleRouter
+from pyger.routers.unit import UnitRouter
+from pyger.routers.path import PathRouter
+from pyger.routers.http_methods import HTTPMethodRouter
 
 
-__all__ = ['SimpleRouter']
+__all__ = [
+    'UnitRouter',
+    'PathRouter',
+    'HTTPMethodRouter'
+]

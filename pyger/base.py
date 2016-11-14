@@ -1,4 +1,12 @@
 from abc import ABCMeta, abstractmethod
+from collections import namedtuple
+
+
+RouteMatch = namedtuple('RouteMatch', ['target', 'match_info'])
+
+
+class MatchError(LookupError):
+    pass
 
 
 class AbstractRouter(metaclass=ABCMeta):
@@ -14,13 +22,13 @@ class AbstractRouter(metaclass=ABCMeta):
             **kwargs: Any arguments used to resolve a route.
 
         Returns:
-            A matched handler.
+            A tuple of a matched handler and an updated match_info dict.
 
         Raises:
             Any exception type.
         """
 
-    def match(self, match_info, **kwargs):
+    def match(self, _match_info=None, **kwargs):
         """
         Match arguments against the router.
 
@@ -34,12 +42,16 @@ class AbstractRouter(metaclass=ABCMeta):
             **kwargs: Any arguments used to resolve route.
 
         Returns:
-            A matched handler.
+            RouteMatch
         """
-        matched = self.resolve(match_info, **kwargs)
-        if isinstance(matched, AbstractRouter):
-            return matched.match(match_info, **kwargs)
-        return matched
+        match_info = {} if _match_info is None else _match_info
+        try:
+            handler, updated_match_info = self.resolve(match_info, **kwargs)
+        except Exception as err:
+            raise MatchError from err
+        if isinstance(handler, AbstractRouter):
+            return handler.match(_match_info=updated_match_info, **kwargs)
+        return RouteMatch(target=handler, match_info=updated_match_info)
 
     @abstractmethod
     def connect(self, handler, **kwargs):
