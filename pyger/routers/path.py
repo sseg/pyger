@@ -5,7 +5,7 @@ import re
 
 class PathRouter(AbstractRouter):
     """
-    A router which connects based on path hierarchies.
+    A router which dispatches based on path hierarchies.
 
     Args:
         path_key (str): the name of the keyword argument to be used when matching
@@ -91,7 +91,7 @@ class PathMap:
 
 
 def make_regex_tuple(name_pattern, default='[^/]+'):
-    pattern_pair = name_pattern.strip('{}').split(':')
+    pattern_pair = name_pattern.strip('{}').split(':', maxsplit=1)
     name = pattern_pair[0]
     if len(pattern_pair) == 1:
         pattern = default

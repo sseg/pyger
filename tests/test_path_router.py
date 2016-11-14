@@ -1,5 +1,6 @@
-from pyger.routers.path import PathMap, PathRouter
+from pyger.routers.path import PathMap, PathRouter, make_regex_tuple
 from pyger.base import MatchError
+import re
 
 
 def test_path_map():
@@ -156,3 +157,11 @@ def test_path_router_traversal_did_not_lead_to_leaf():
         assert False, 'Expected MatchError; %s raised.' % err.__class__.__name__
     else:
         assert False, 'Expected MatchError; no error raised.'
+
+
+def test_make_regex_tuple():
+    name_pattern = '{command:(?:he)(?:lp|llo)}'
+    pair = make_regex_tuple(name_pattern)
+    name, compiled = pair[0], pair[1]
+    assert name == 'command'
+    assert compiled == re.compile('(?:he)(?:lp|llo)')
