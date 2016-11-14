@@ -4,13 +4,6 @@ except ImportError:
     from distutils.core import setup
 
 
-tests_require = [
-    'flake8',
-    'pytest',
-    'pytest-cov'
-]
-
-
 setup(
     name="pyger",
     description="PyGER - Python Generic Extensible Router",
@@ -25,10 +18,6 @@ setup(
     maintainer_email="steven.seguin@gmail.com",
     url="https://github.com/sseg/pyger",
     packages=['pyger'],
-    tests_require=tests_require,
-    extras_require={
-        'test': tests_require,
-    },
     classifiers=[
         'Programming Language :: Python :: 3',
     ]

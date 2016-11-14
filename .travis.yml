@@ -4,6 +4,6 @@ python:
     - "3.6-dev"
     - "pypy3"
 install:
-    - python setup.py install
-    - python setup.py test
-script: pytest
+    - pip install -r test-requirements.txt
+    - pip install -e .
+script: py.test
