@@ -27,6 +27,18 @@ def test_path_map_regex():
     assert match[1] == 'id'
 
 
+def test_path_map_regex_partial_match():
+    mapping = PathMap()
+    sentinel = object()
+    mapping.set('{name:fred}', sentinel)
+    try:
+        mapping.get('freddie')
+    except KeyError:
+        pass
+    else:
+        assert False, 'Expected KeyError'
+
+
 def test_path_map_plain_lookup_error():
     mapping = PathMap()
     mapping.set('abc', object())

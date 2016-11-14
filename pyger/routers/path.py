@@ -95,7 +95,8 @@ class PathMap:
             return self.plain_segments[name], None
         except KeyError:
             for (segment_name, re_pattern), value in self.regex_segments.items():
-                if re_pattern.fullmatch(name):
+                match = re_pattern.match(name)
+                if match and match.group(0) == name:
                     return value, segment_name
             raise
 
