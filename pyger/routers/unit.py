@@ -6,7 +6,7 @@ class UnitRouter(AbstractRouter):
         self.handler = handler
 
     def _resolve(self, match_info, **kwargs):
-        return self.handler, dict(**match_info)
+        return self.handler, match_info.copy()
 
     def connect(self, handler, **kwargs):
         self.handler = handler

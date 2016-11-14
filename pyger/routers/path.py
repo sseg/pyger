@@ -55,7 +55,9 @@ class PathRouter(AbstractRouter):
         if isinstance(found, PathMap):
             # traversal did not lead to a leaf node
             raise self._build_exception(kwargs=kwargs)
-        return found, {**match_info, **dispatch_matches}
+        updated_match = match_info.copy()
+        updated_match.update(dispatch_matches)
+        return found, updated_match
 
     def _get_path_arg(self, kwarg_dict):
         path = kwarg_dict.get(self.path_key)

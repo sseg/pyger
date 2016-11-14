@@ -77,8 +77,6 @@ class AbstractRouter(metaclass=ABCMeta):
 
     def _build_exception(self, **extra):
         exc = self.exc_class()
-        exc._pyger = {
-            'router': self,
-            **extra
-        }
+        exc._pyger = extra
+        exc._pyger.update(router=self)
         return exc

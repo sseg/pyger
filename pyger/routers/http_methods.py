@@ -16,7 +16,7 @@ class HTTPMethodRouter(AbstractRouter):
         sentinel = object()
         default = self.map.get(self.method_any, sentinel)
         if default is not sentinel:
-            return default, {**match_info}
+            return default, match_info.copy()
         method = self._get_method_arg(kwargs)
         try:
             return self.map[method], {**match_info}
