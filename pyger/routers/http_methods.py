@@ -27,7 +27,7 @@ class HTTPMethodRouter(AbstractRouter):
         method = kwarg_dict.get(self.method_key)
         if method is None:
             raise TypeError(
-                'Expected keyword argument "{method_key}" but received {passed_args}'.format(
+                "Expected keyword argument '{method_key}' but received {passed_args}".format(
                     method_key=self.method_key, passed_args=list(kwarg_dict.keys())
                 )
             )

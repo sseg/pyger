@@ -143,3 +143,16 @@ def test_path_map_alternate_arg_key():
     sentinel = object()
     router.connect(sentinel, foo='/index')
     assert router.match(foo='/index').target is sentinel
+
+
+def test_path_router_traversal_did_not_lead_to_leaf():
+    router = PathRouter()
+    router.connect(object(), path='/some/long/path')
+    try:
+        router.match(path='/some/long')
+    except MatchError:
+        pass
+    except Exception as err:
+        assert False, 'Expected MatchError; %s raised.' % err.__class__.__name__
+    else:
+        assert False, 'Expected MatchError; no error raised.'
