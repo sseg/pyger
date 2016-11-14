@@ -13,9 +13,9 @@ setup(
     license="""BSD""",
     version="0.1",
     author="Steven Seguin",
-    author_email="steven.seguin@gmail.com",
+    author_email="steven.seguin+pyger@gmail.com",
     maintainer="Steven Seguin",
-    maintainer_email="steven.seguin@gmail.com",
+    maintainer_email="steven.seguin+pyger@gmail.com",
     url="https://github.com/sseg/pyger",
     packages=['pyger'],
     classifiers=[

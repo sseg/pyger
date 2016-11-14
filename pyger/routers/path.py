@@ -32,9 +32,9 @@ class PathRouter(AbstractRouter):
         segments = path.strip('/').split('/')
         node = self.map
         for segment in segments[:-1]:
-            node[segment] = PathMap()
-            node = node[segment][0]
-        node[segments[-1]] = handler
+            node.set(segment, PathMap())
+            node = node.get(segment)[0]
+        node.set(segments[-1], handler)
 
     def _resolve(self, match_info, **kwargs):
         path = self._get_path_arg(kwargs)
@@ -62,7 +62,7 @@ class PathRouter(AbstractRouter):
         node = self.map
         dispatch_matches = {}
         for segment in path_segments:
-            node, segment_name = node[segment]
+            node, segment_name = node.get(segment)
             if segment_name is not None:
                 dispatch_matches[segment_name] = segment
         return node, dispatch_matches
@@ -73,7 +73,7 @@ class PathMap:
         self.plain_segments = {}
         self.regex_segments = {}
 
-    def __getitem__(self, name):
+    def get(self, name):
         try:
             return self.plain_segments[name], None
         except KeyError:
@@ -82,8 +82,8 @@ class PathMap:
                     return value, segment_name
             raise
 
-    def __setitem__(self, name, value):
-        if name and name[0] == '{':
+    def set(self, name, value):
+        if name != '' and name[0] == '{':
             regex_tuple = make_regex_tuple(name)
             self.regex_segments[regex_tuple] = value
         else:

@@ -6,32 +6,32 @@ import re
 def test_path_map():
     mapping = PathMap()
     sentinel = object()
-    mapping['abcd'] = sentinel
-    assert mapping['abcd'][0] is sentinel
+    mapping.set('abcd', sentinel)
+    assert mapping.get('abcd')[0] is sentinel
 
 
 def test_path_map_named():
     mapping = PathMap()
     sentinel = object()
-    mapping['{id}'] = sentinel
-    assert mapping['abcd'][0] is sentinel
-    assert mapping['3521'][1] == 'id'
+    mapping.set('{id}', sentinel)
+    assert mapping.get('abcd')[0] is sentinel
+    assert mapping.get('3521')[1] == 'id'
 
 
 def test_path_map_regex():
     mapping = PathMap()
     sentinel = object()
-    mapping['{id:\d+}'] = sentinel
-    match = mapping['1234']
+    mapping.set('{id:\d+}', sentinel)
+    match = mapping.get('1234')
     assert match[0] is sentinel
     assert match[1] == 'id'
 
 
 def test_path_map_plain_lookup_error():
     mapping = PathMap()
-    mapping['abc'] = object()
+    mapping.set('abc', object())
     try:
-        mapping['bcd']
+        mapping.get('bcd')
     except KeyError:
         pass
     else:
@@ -40,9 +40,9 @@ def test_path_map_plain_lookup_error():
 
 def test_path_map_regex_lookup_error():
     mapping = PathMap()
-    mapping['{category:[123]*}'] = object()
+    mapping.set('{category:[123]*}', object())
     try:
-        mapping['456']
+        mapping.get('456')
     except KeyError:
         pass
     else:
@@ -52,15 +52,15 @@ def test_path_map_regex_lookup_error():
 def test_path_map_multiple_keys():
     mapping = PathMap()
     hello = object()
-    mapping['hello'] = hello
+    mapping.set('hello', hello)
     howdy = object()
-    mapping['howdy'] = howdy
+    mapping.set('howdy', howdy)
     generic_greeting = object()
-    mapping['{generic_greeting}'] = generic_greeting
+    mapping.set('{generic_greeting}', generic_greeting)
 
-    assert mapping['hello'][0] is hello
-    assert mapping['howdy'][0] is howdy
-    assert mapping['other123_()$!@3'][0] is generic_greeting
+    assert mapping.get('hello')[0] is hello
+    assert mapping.get('howdy')[0] is howdy
+    assert mapping.get('other123_()$!@3')[0] is generic_greeting
 
 
 def test_nested_path_maps():
@@ -69,11 +69,11 @@ def test_nested_path_maps():
     sentinel = object()
     path = '/outer/inner'
     segments = path.strip('/').split('/')
-    outer[segments[0]] = inner
-    inner[segments[1]] = sentinel
+    outer.set(segments[0], inner)
+    inner.set(segments[1], sentinel)
 
-    first_match = outer[segments[0]]
-    second_match = first_match[0][segments[1]]
+    first_match = outer.get(segments[0])
+    second_match = first_match[0].get(segments[1])
     assert second_match[0] is sentinel
 
 
@@ -161,7 +161,14 @@ def test_path_router_traversal_did_not_lead_to_leaf():
 
 def test_make_regex_tuple():
     name_pattern = '{command:(?:he)(?:lp|llo)}'
-    pair = make_regex_tuple(name_pattern)
-    name, compiled = pair[0], pair[1]
+    name, compiled = make_regex_tuple(name_pattern)
     assert name == 'command'
     assert compiled == re.compile('(?:he)(?:lp|llo)')
+
+
+def test_make_regex_tuple_no_regex_provided():
+    name_pattern = '{name}'
+    default_pattern = '[^/]+'
+    name, compiled = make_regex_tuple(name_pattern)
+    assert name == 'name'
+    assert compiled == re.compile(default_pattern)
