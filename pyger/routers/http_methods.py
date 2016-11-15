@@ -19,7 +19,7 @@ class HTTPMethodRouter(AbstractRouter):
             return default, match_info.copy()
         method = self._get_method_arg(kwargs)
         try:
-            return self.map[method], {**match_info}
+            return self.map[method], match_info.copy()
         except LookupError as err:
             raise self._build_exception(kwargs=kwargs) from err
 
