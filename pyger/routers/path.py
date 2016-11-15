@@ -1,5 +1,4 @@
 from pyger.base import AbstractRouter, MatchError
-from collections.abc import MutableMapping
 import re
 
 

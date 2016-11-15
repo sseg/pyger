@@ -11,3 +11,5 @@ script:
     - py.test --cov=pyger --cov-report=term-missing --cov-report=html tests
 after_success:
     - codecov
+notifications:
+    email: false

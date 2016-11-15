@@ -206,3 +206,18 @@ def test_path_router_glob_remainder_in_middle():
         assert False, 'Expected ValueError; %s raised.' % err.__class__.__name__
     else:
         assert False, 'Expected ValueError; no error raised.'
+
+
+def test_path_router_too_many_segments():
+    router = PathRouter()
+    sentinel = object()
+
+    router.connect(sentinel, path='/foo/bar')
+    try:
+        router.match(path='/foo/bar/baz')
+    except MatchError:
+        pass
+    except Exception as err:
+        assert False, 'Expected MatchError; %s raised.' % err.__class__.__name__
+    else:
+        assert False, 'Expected MatchError; no error raised.'
