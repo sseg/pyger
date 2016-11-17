@@ -3,6 +3,8 @@ from pyger.base import MatchError
 import re
 
 
+# PathMap tests
+
 def test_path_map():
     mapping = PathMap()
     sentinel = object()
@@ -88,6 +90,8 @@ def test_nested_path_maps():
     second_match = first_match[0].get(segments[1])
     assert second_match[0] is sentinel
 
+
+# PathRouter tests
 
 def test_path_router_connect_resolve():
     router = PathRouter()
@@ -221,3 +225,23 @@ def test_path_router_too_many_segments():
         assert False, 'Expected MatchError; %s raised.' % err.__class__.__name__
     else:
         assert False, 'Expected MatchError; no error raised.'
+
+
+def test_path_router_extraneous_path_separators():
+    router = PathRouter()
+    sentinel = object()
+
+    router.connect(sentinel, path='/foo/bar')
+    match = router.match(path='/foo//bar')
+    assert match.target is sentinel
+
+
+def test_path_router_extraneous_path_separators_with_variable():
+    router = PathRouter()
+    sentinel = object()
+
+    router.connect(sentinel, path='/foo/bar/{baz:\d+}/{*pop}')
+    match = router.match(path='////foo/bar/2342///abc///def///g')
+    assert match.target is sentinel
+    assert match.match_info['baz'] == '2342'
+    assert match.match_info['pop'] == ('abc', 'def', 'g')
