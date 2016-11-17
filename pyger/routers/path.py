@@ -1,8 +1,13 @@
 from pyger.base import AbstractRouter, MatchError
 import re
+from pathlib import PurePosixPath
 
 
-class PathRouter(AbstractRouter):
+def clean_path(path):
+    return PurePosixPath(path).as_posix()
+
+
+class URIPathRouter(AbstractRouter):
     """
     A router which dispatches based on path hierarchies.
 
@@ -11,7 +16,7 @@ class PathRouter(AbstractRouter):
         routes.
 
     Usage:
-        >>> router = PathRouter()
+        >>> router = URIPathRouter()
         >>> router.connect(index_handler, path='/index')
         >>> router.connect(article_handler, path='/articles/{category}/{id:[0-9]+}')
         >>> router.match('/index')
@@ -28,7 +33,7 @@ class PathRouter(AbstractRouter):
         self.exc_class = raises
 
     def connect(self, handler, **kwargs):
-        path = self._get_path_arg(kwargs)
+        path = clean_path(self._get_path_arg(kwargs))
         segments = path.strip('/').split('/')
         node = self.map
 
@@ -45,7 +50,7 @@ class PathRouter(AbstractRouter):
         node.set(last_segment, handler)
 
     def _resolve(self, match_info, **kwargs):
-        path = self._get_path_arg(kwargs)
+        path = clean_path(self._get_path_arg(kwargs))
         segments = path.strip('/').split('/')
         try:
             found, dispatch_matches = self._traverse_map(segments)

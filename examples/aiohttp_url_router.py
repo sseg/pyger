@@ -1,7 +1,7 @@
 from aiohttp import web, abc
 from aiohttp.web_urldispatcher import MatchInfoError, UrlMappingMatchInfo, ResourceRoute
 from aiohttp.web_exceptions import HTTPMethodNotAllowed, HTTPNotFound
-from pyger.routers import PathRouter, HTTPMethodRouter
+from pyger.routers import URIPathRouter, HTTPMethodRouter
 from pyger.base import MatchError
 
 
@@ -19,7 +19,7 @@ async def hello_v2(request):
 
 class PygerRouter(abc.AbstractRouter):
     def __init__(self):
-        self.routes = PathRouter(raises=HTTPNotFound)
+        self.routes = URIPathRouter(raises=HTTPNotFound)
 
     def add_route(self, method, path, handler):
         method_router = HTTPMethodRouter()  # raises default MatchError

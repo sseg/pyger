@@ -1,4 +1,4 @@
-from pyger.routers.path import PathMap, PathRouter, make_regex_tuple
+from pyger.routers.path import PathMap, URIPathRouter, make_regex_tuple
 from pyger.base import MatchError
 import re
 
@@ -91,10 +91,10 @@ def test_nested_path_maps():
     assert second_match[0] is sentinel
 
 
-# PathRouter tests
+# URIPathRouter tests
 
 def test_path_router_connect_resolve():
-    router = PathRouter()
+    router = URIPathRouter()
     sentinel = object()
     router.connect(sentinel, path='/outer/inner')
     match = router.match(path='/outer/inner')
@@ -102,7 +102,7 @@ def test_path_router_connect_resolve():
 
 
 def test_path_router_regex_connect_resolve():
-    router = PathRouter()
+    router = URIPathRouter()
     sentinel = object()
     router.connect(sentinel, path='/objects/{id}')
     object_id = '123abcdef'
@@ -112,14 +112,14 @@ def test_path_router_regex_connect_resolve():
 
 
 def test_path_router_root():
-    router = PathRouter()
+    router = URIPathRouter()
     sentinel = object()
     router.connect(sentinel, path='/')
     assert router.match(path='/').target is sentinel
 
 
 def test_path_router_trailing_slash():
-    router = PathRouter()
+    router = URIPathRouter()
     sentinel = object()
     router.connect(sentinel, path='/trailing/')
     router.connect(sentinel, path='/not-trailing')
@@ -131,7 +131,7 @@ def test_path_router_trailing_slash():
 
 
 def test_path_router_no_match_found():
-    router = PathRouter()
+    router = URIPathRouter()
     router.connect(object(), path='/some/path')
     try:
         router.match(path='/some/other/path')
@@ -144,7 +144,7 @@ def test_path_router_no_match_found():
 
 
 def test_path_router_missing_arg():
-    router = PathRouter()
+    router = URIPathRouter()
     try:
         router.match(patch='/some/path')
     except TypeError:
@@ -156,14 +156,14 @@ def test_path_router_missing_arg():
 
 
 def test_path_map_alternate_arg_key():
-    router = PathRouter(path_key='foo')
+    router = URIPathRouter(path_key='foo')
     sentinel = object()
     router.connect(sentinel, foo='/index')
     assert router.match(foo='/index').target is sentinel
 
 
 def test_path_router_traversal_did_not_lead_to_leaf():
-    router = PathRouter()
+    router = URIPathRouter()
     router.connect(object(), path='/some/long/path')
     try:
         router.match(path='/some/long')
@@ -191,7 +191,7 @@ def test_make_regex_tuple_no_regex_provided():
 
 
 def test_path_router_glob_remainder():
-    router = PathRouter()
+    router = URIPathRouter()
     sentinel = object()
     router.connect(sentinel, path='/foo/{*fizz}')
     match = router.match(path='/foo/bar/baz.txt')
@@ -200,7 +200,7 @@ def test_path_router_glob_remainder():
 
 
 def test_path_router_glob_remainder_in_middle():
-    router = PathRouter()
+    router = URIPathRouter()
     sentinel = object()
     try:
         router.connect(sentinel, path='/foo/{*bar}/baz/{*fizz}')
@@ -213,7 +213,7 @@ def test_path_router_glob_remainder_in_middle():
 
 
 def test_path_router_too_many_segments():
-    router = PathRouter()
+    router = URIPathRouter()
     sentinel = object()
 
     router.connect(sentinel, path='/foo/bar')
@@ -228,7 +228,7 @@ def test_path_router_too_many_segments():
 
 
 def test_path_router_extraneous_path_separators():
-    router = PathRouter()
+    router = URIPathRouter()
     sentinel = object()
 
     router.connect(sentinel, path='/foo/bar')
@@ -237,7 +237,7 @@ def test_path_router_extraneous_path_separators():
 
 
 def test_path_router_extraneous_path_separators_with_variable():
-    router = PathRouter()
+    router = URIPathRouter()
     sentinel = object()
 
     router.connect(sentinel, path='/foo/bar/{baz:\d+}/{*pop}')
@@ -245,3 +245,21 @@ def test_path_router_extraneous_path_separators_with_variable():
     assert match.target is sentinel
     assert match.match_info['baz'] == '2342'
     assert match.match_info['pop'] == ('abc', 'def', 'g')
+
+
+def test_path_router_single_dot_segments():
+    router = URIPathRouter()
+    sentinel = object()
+
+    router.connect(sentinel, path='/foo/bar/baz')
+    match = router.match(path='/foo/./././bar/./baz')
+    assert match.target is sentinel
+
+
+def test_path_router_double_dot_segments():  # see spec https://tools.ietf.org/html/rfc3986#section-5.2.4
+    router = URIPathRouter()
+    sentinel = object()
+
+    router.connect(sentinel, path='/foo/bar/baz')
+    match = router.match(path='/foo/../foo/bar/../../foo/bar/baz')
+    assert match.target is sentinel
