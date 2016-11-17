@@ -1,10 +1,9 @@
 from pyger.base import AbstractRouter, MatchError
 import re
-from pathlib import PurePosixPath
 
 
-def clean_path(path):
-    return PurePosixPath(path).as_posix()
+def get_path_segments(path):
+    return [x for x in path.split('/') if x and x != '.']
 
 
 class URIPathRouter(AbstractRouter):
@@ -31,10 +30,11 @@ class URIPathRouter(AbstractRouter):
         self.path_key = path_key
         self.map = PathMap()
         self.exc_class = raises
+        self._root_marker = ''
 
     def connect(self, handler, **kwargs):
-        path = clean_path(self._get_path_arg(kwargs))
-        segments = path.strip('/').split('/')
+        path = self._get_path_arg(kwargs)
+        segments = get_path_segments(path)
         node = self.map
 
         for segment in segments[:-1]:
@@ -46,16 +46,16 @@ class URIPathRouter(AbstractRouter):
             node.set(segment, PathMap())
             node = node.get(segment)[0]
 
-        last_segment = segments[-1]
+        last_segment = segments[-1] if segments else self._root_marker
         node.set(last_segment, handler)
 
     def _resolve(self, match_info, **kwargs):
-        path = clean_path(self._get_path_arg(kwargs))
-        segments = path.strip('/').split('/')
+        path = self._get_path_arg(kwargs)
+        segments = get_path_segments(path)
         try:
             found, dispatch_matches = self._traverse_map(segments)
         except LookupError as err:
-            raise self._build_exception(kwargs=kwargs)
+            raise self._build_exception(kwargs=kwargs) from err
         if isinstance(found, PathMap):
             # traversal did not lead to a leaf node
             raise self._build_exception(kwargs=kwargs)
@@ -76,6 +76,9 @@ class URIPathRouter(AbstractRouter):
     def _traverse_map(self, path_segments):
         node = self.map
         dispatch_matches = {}
+        if not path_segments:
+            target, _ = node.get(self._root_marker)
+            return target, dispatch_matches
         for i, segment in enumerate(path_segments):
             node, segment_name = node.get(segment)
             if segment_name is not None:
