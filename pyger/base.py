@@ -20,7 +20,7 @@ class AbstractRouter(metaclass=ABCMeta):
     @abstractmethod
     def connect(self, handler, **kwargs):
         """
-        A method which registers new handlers to routes.
+        A method that registers new handlers to routes.
 
         Args:
             handler (Any): The value resolved by a match.
