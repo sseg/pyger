@@ -3,7 +3,14 @@ import re
 
 
 def get_path_segments(path):
-    return [x for x in path.split('/') if x and x != '.']
+    base_segments = [x for x in path.split('/') if x and x != '.']
+    output_buffer = []
+    for s in base_segments:
+        if s == '..':
+            output_buffer = output_buffer[:-1]
+        else:
+            output_buffer.append(s)
+    return output_buffer
 
 
 class URIPathRouter(AbstractRouter):
@@ -43,8 +50,9 @@ class URIPathRouter(AbstractRouter):
                     'Globbing path segments (`*foo`) can only be '
                     'used as the last segment in a path'
                 )
-            node.set(segment, PathMap())
-            node = node.get(segment)[0]
+            next_node = PathMap()
+            node.set(segment, next_node)
+            node = next_node
 
         last_segment = segments[-1] if segments else self._root_marker
         node.set(last_segment, handler)
@@ -80,6 +88,8 @@ class URIPathRouter(AbstractRouter):
             target, _ = node.get(self._root_marker)
             return target, dispatch_matches
         for i, segment in enumerate(path_segments):
+            if not isinstance(node, PathMap):
+                raise KeyError
             node, segment_name = node.get(segment)
             if segment_name is not None:
                 if segment_name.startswith('*'):

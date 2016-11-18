@@ -244,7 +244,7 @@ def test_path_router_extraneous_path_separators_with_variable():
     match = router.match(path='////foo/bar/2342///abc///def///g')
     assert match.target is sentinel
     assert match.match_info['baz'] == '2342'
-    assert match.match_info['pop'] == ('abc', 'def', 'g')
+    assert match.match_info['*pop'] == ('abc', 'def', 'g')
 
 
 def test_path_router_single_dot_segments():
@@ -256,10 +256,46 @@ def test_path_router_single_dot_segments():
     assert match.target is sentinel
 
 
-def test_path_router_double_dot_segments():  # see spec https://tools.ietf.org/html/rfc3986#section-5.2.4
+def test_path_router_double_dot_segments():
     router = URIPathRouter()
     sentinel = object()
 
     router.connect(sentinel, path='/foo/bar/baz')
     match = router.match(path='/foo/../foo/bar/../../foo/bar/baz')
+    assert match.target is sentinel
+
+
+def test_path_router_double_dot_segments_limits_at_root():
+    router = URIPathRouter()
+    sentinel = object()
+
+    router.connect(sentinel, path='')
+    match = router.match(path='/foo/bar/../../../../../')
+    assert match.target is sentinel
+
+
+def test_path_router_double_dot_segments_limits_at_root_and_resource():
+    router = URIPathRouter()
+    sentinel = object()
+
+    router.connect(sentinel, path='/bar')
+    match = router.match(path='/foo/bar/../../../../../bar')
+    assert match.target is sentinel
+
+
+def test_path_router_dots_as_part_of_path_segments():
+    router = URIPathRouter()
+    sentinel = object()
+
+    router.connect(sentinel, path='/foo/.bar/baz')
+    match = router.match(path='/foo/.bar/baz')
+    assert match.target is sentinel
+
+
+def test_path_router_double_dots_as_part_of_path_segments():
+    router = URIPathRouter()
+    sentinel = object()
+
+    router.connect(sentinel, path='/foo/..bar/baz')
+    match = router.match(path='/foo/..bar/baz')
     assert match.target is sentinel
