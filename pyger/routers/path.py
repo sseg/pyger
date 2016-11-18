@@ -18,8 +18,11 @@ class URIPathRouter(AbstractRouter):
     A router which dispatches based on path hierarchies.
 
     Args:
-        path_key (str): the name of the keyword argument to be used when matching
-        routes.
+        path_key (str, optional): the name of the keyword argument to be used
+        when matching routes. Defaults to "path".
+
+        raises (Exception, optional): an exception class to be raised when no
+        match is found. Defaults to `pyger.base.MatchError`.
 
     Usage:
         >>> router = URIPathRouter()
@@ -61,7 +64,7 @@ class URIPathRouter(AbstractRouter):
         path = self._get_path_arg(kwargs)
         segments = get_path_segments(path)
         try:
-            found, dispatch_matches = self._traverse_map(segments)
+            found, dispatch_matches = self.traverse_map(segments)
         except LookupError as err:
             raise self._build_exception(kwargs=kwargs) from err
         if isinstance(found, PathMap):
@@ -81,24 +84,36 @@ class URIPathRouter(AbstractRouter):
             )
         return path
 
+    def traverse_map(self, path_segments):
+        if not path_segments:
+            target, _ = self.map.get(self._root_marker)
+            return target, {}
+        return self._traverse_map(path_segments)
+
     def _traverse_map(self, path_segments):
+        # initial node and match state
         node = self.map
         dispatch_matches = {}
-        if not path_segments:
-            target, _ = node.get(self._root_marker)
-            return target, dispatch_matches
+
         for i, segment in enumerate(path_segments):
             if not isinstance(node, PathMap):
+                # we have more segments to process but we ran out of nodes
                 raise KeyError
+
+            # get the next node
             node, segment_name = node.get(segment)
+
             if segment_name is not None:
+                # build match dict
                 if segment_name.startswith('*'):
-                    break
+                    # this node collects following path segments
+                    dispatch_matches[segment_name] = tuple(
+                        segment for segment in path_segments[i:]
+                    )
+                    break  # globbing variables only allowed as last segment
                 else:
                     dispatch_matches[segment_name] = segment
-        if i + 1 != len(path_segments):
-            dispatch_matches.setdefault(segment_name, tuple())
-            dispatch_matches[segment_name] += tuple(segment for segment in path_segments[i:])
+
         return node, dispatch_matches
 
 

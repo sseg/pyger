@@ -21,7 +21,8 @@ class PygerRouter(abc.AbstractRouter):
     def __init__(self):
         self.routes = URIPathRouter(raises=HTTPNotFound)
 
-    def add_route(self, method, path, handler):  # TODO use API version as path segments in subrouter
+    def add_route(self, method, path, handler):
+        # TODO use API version as path segments in subrouter
         method_router = HTTPMethodRouter()  # raises default MatchError
         method_router.connect(handler, method=method)
         self.routes.connect(method_router, path=path)
