@@ -1,12 +1,12 @@
 from pyger.base import AbstractRouter
 
 
-class SimpleRouter(AbstractRouter):
+class UnitRouter(AbstractRouter):
     def __init__(self, handler):
         self.handler = handler
 
-    def resolve(self, match_info, **kwargs):
-        return self.handler
+    def _resolve(self, match_info, **kwargs):
+        return self.handler, match_info.copy()
 
     def connect(self, handler, **kwargs):
         self.handler = handler
