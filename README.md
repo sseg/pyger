@@ -1,14 +1,11 @@
 # PyGER
 Python Generic Extensible Router
 
-Build arbitrary route matchers and nested matching trees.
+- build arbitrary route matchers and nested matching trees.
+- official support for Python 3.4+, PyPy3.3+
 
 ## Usage
 Coming soon...
-
-## Requirements
-
-Python 3.4+ or PyPy3.3+
 
 ## License
 BSD licensed. See the LICENSE file for details.
