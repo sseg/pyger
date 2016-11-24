@@ -1,3 +1,15 @@
+"""
+Example of replacing aiohttp's router with a PyGER-based router.
+
+Start the server:
+    python aiohttp_url_router.py
+
+Then make requests at the endpoints:
+- http://0.0.0.0:8080/v1/hello/clare
+- http://0.0.0.0:8080/v2/hello/guido
+
+"""
+
 from aiohttp import web, abc
 from aiohttp.web_urldispatcher import MatchInfoError, UrlMappingMatchInfo, ResourceRoute
 from aiohttp.web_exceptions import HTTPMethodNotAllowed, HTTPNotFound
