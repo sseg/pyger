@@ -19,6 +19,18 @@ setup(
     url="https://github.com/sseg/pyger",
     packages=['pyger'],
     classifiers=[
+        'Development Status :: 2 - Pre-Alpha'
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX',
+        'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python',
+        'Topic :: Internet'
     ]
 )

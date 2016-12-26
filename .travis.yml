@@ -1,16 +1,26 @@
 language: python
+
 python:
     - "3.4"
     - "3.5"
-    - "3.6-dev"
+    - "3.6"
+    - "3.7-dev"
     - "pypy3.3-5.2-alpha1"
+
+matrix:
+  allow_failures:
+    - python: '3.7-dev'
+
 install:
     - pip install -r test-requirements.txt
     - pip install codecov
     - pip install -e .
+
 script:
     - py.test --cov=pyger --cov-report=term-missing --cov-report=html tests
+
 after_success:
     - codecov
+
 notifications:
     email: false
